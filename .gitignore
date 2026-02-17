@@ -42,5 +42,11 @@ dist
 .env
 .vscode
 
+node_modules
+dist
+.env
+.vscode
+
+
 
 
