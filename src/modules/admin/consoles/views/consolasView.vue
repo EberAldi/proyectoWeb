@@ -1,139 +1,214 @@
 <template>
-  <div class="space-y-6">
+  <div class="d-flex flex-column gap-4">
     <!-- Header -->
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <header class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
       <div>
-        <h1 class="text-2xl font-black text-gray-800 flex items-center gap-3">
+        <h1 class="fw-black text-dark fs-4 mb-0 d-flex align-items-center gap-3">
           <div
-            class="w-10 h-10 rounded-xl flex items-center justify-center shadow"
-            style="background: #685aff"
+            class="rounded-3 d-flex align-items-center justify-content-center shadow"
+            :style="{ background: '#685aff', width: '40px', height: '40px', flexShrink: 0 }"
           >
-            <font-awesome-icon icon="gamepad" class="text-white" />
+            <font-awesome-icon icon="gamepad" class="text-white small" />
           </div>
           Consolas
         </h1>
-        <p class="text-gray-400 text-sm mt-1">Estado actual del inventario</p>
+        <p class="text-secondary small mt-1 mb-0">Estado actual del inventario</p>
       </div>
-
-      <nav class="flex gap-2 flex-wrap">
+      <!-- Filtros -->
+      <nav class="d-flex gap-2 flex-wrap">
         <button
-          class="px-4 py-2 rounded-xl text-sm font-semibold border-2 border-[#685AFF] text-[#685AFF]"
+          v-for="filtro in filtros"
+          :key="filtro.value"
+          class="btn btn-sm fw-semibold rounded-3"
+          :class="store.filtroActivo === filtro.value ? 'text-white' : 'btn-outline-secondary'"
+          :style="store.filtroActivo === filtro.value
+            ? { backgroundColor: filtro.color, borderColor: filtro.color }
+            : { borderColor: filtro.color, color: filtro.color }"
+          @click="store.setFiltro(filtro.value)"
         >
-          Todas
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-semibold border-2 border-green-500 text-green-500"
-        >
-          Disponibles
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-semibold border-2 border-red-500 text-red-500"
-        >
-          Ocupadas
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-semibold border-2 border-yellow-500 text-yellow-500"
-        >
-          Mantenimiento
+          {{ filtro.label }}
         </button>
       </nav>
     </header>
 
-    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+    <!-- Layout -->
+    <div class="row g-4">
       <!-- Grid consolas -->
-      <section class="xl:col-span-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Card consola -->
-          <article
-            class="bg-white rounded-2xl shadow-sm border-2 overflow-hidden hover:shadow-xl transition-all"
+      <section class="col-12 col-xl-9">
+        <div class="row g-3">
+          <div
+            v-for="consola in store.consolasFiltradas"
+            :key="consola.id"
+            class="col-12 col-sm-6 col-lg-4"
           >
-            <div class="h-1.5 bg-green-500"></div>
-
-            <div class="p-5">
-              <header class="flex items-start justify-between mb-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-green-100">
-                    <font-awesome-icon icon="gamepad" class="text-xl text-green-500" />
+            <article class="bg-white rounded-4 shadow-sm overflow-hidden h-100 card-consola">
+              <div
+                style="height: 5px"
+                :style="{ backgroundColor: store.colorEstado(consola.estado).barra }"
+              ></div>
+              <div class="p-4">
+                <header class="d-flex align-items-start justify-content-between mb-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <div
+                      class="rounded-3 d-flex align-items-center justify-content-center"
+                      :style="{
+                        backgroundColor: store.colorEstado(consola.estado).bg,
+                        width: '48px',
+                        height: '48px',
+                        flexShrink: 0,
+                      }"
+                    >
+                      <font-awesome-icon
+                        icon="gamepad"
+                        :style="{ color: store.colorEstado(consola.estado).text }"
+                      />
+                    </div>
+                    <div>
+                      <h3 class="fw-black text-dark small mb-0">{{ consola.nombre }}</h3>
+                      <p class="text-secondary mb-0" style="font-size: 0.7rem">{{ consola.marca }}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 class="font-black text-gray-800 text-sm">Nombre consola</h3>
-                    <p class="text-xs text-gray-400 font-medium">Marca</p>
+                  <span
+                    class="badge rounded-pill small fw-bold text-capitalize"
+                    :style="{
+                      backgroundColor: store.colorEstado(consola.estado).bg,
+                      color: store.colorEstado(consola.estado).text,
+                    }"
+                  >
+                    {{ consola.estado }}
+                  </span>
+                </header>
+
+                <section class="d-flex flex-column gap-2 mb-3 small">
+                  <div class="d-flex justify-content-between">
+                    <span class="text-secondary">Controles</span>
+                    <span class="fw-semibold text-dark">{{ consola.controles }} disponibles</span>
                   </div>
-                </div>
+                  <div class="d-flex justify-content-between">
+                    <span class="text-secondary">Precio/hora</span>
+                    <span class="fw-black" style="color: #685aff">${{ consola.precioPorHora }}</span>
+                  </div>
+                  <div class="progress mt-1" style="height: 6px">
+                    <div
+                      class="progress-bar"
+                      :style="{
+                        width: Math.min((consola.usoHoy / 240) * 100, 100) + '%',
+                        backgroundColor: store.colorEstado(consola.estado).barra,
+                      }"
+                    ></div>
+                  </div>
+                </section>
 
-                <span class="text-xs font-bold px-3 py-1 rounded-full bg-green-100 text-green-500">
-                  disponible
-                </span>
-              </header>
+                <footer class="d-flex gap-2 pt-3 border-top">
+                  <button
+                    class="btn btn-sm flex-grow-1 fw-bold text-white"
+                    style="background-color: #685aff"
+                    :disabled="consola.estado !== 'disponible'"
+                    @click="pos.abrirVenta(consola)"
+                  >
+                    Rentar
+                  </button>
+                  <button
+                    class="btn btn-sm fw-semibold px-3"
+                    style="background-color: #dbeafe; color: #685aff"
+                  >
+                    <font-awesome-icon icon="eye" />
+                  </button>
+                </footer>
+              </div>
+            </article>
+          </div>
 
-              <section class="space-y-2 mb-4">
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-400">Controles</span>
-                  <span class="font-semibold text-gray-700">2 disponibles</span>
-                </div>
-
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-400">Precio/hora</span>
-                  <span class="font-black text-[#685AFF]">$80</span>
-                </div>
-
-                <!-- Barra progreso -->
-                <div class="mt-3 bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div class="h-2 rounded-full bg-red-500 w-1/2"></div>
-                </div>
-              </section>
-
-              <footer class="flex gap-2 pt-3 border-t border-gray-100">
-                <button class="flex-1 py-2 text-white text-sm font-bold rounded-xl bg-[#685AFF]">
-                  Rentar
-                </button>
-
-                <button
-                  class="px-3 py-2 rounded-xl text-sm font-semibold bg-blue-200 text-[#685AFF]"
-                >
-                  <font-awesome-icon icon="eye" />
-                </button>
-              </footer>
+          <div v-if="store.consolasFiltradas.length === 0" class="col-12">
+            <div class="bg-white rounded-4 shadow-sm p-5 text-center text-secondary small">
+              No hay consolas en este estado
             </div>
-          </article>
+          </div>
         </div>
       </section>
 
       <!-- Aside -->
-      <aside class="xl:col-span-1 space-y-4">
-        <article class="bg-white rounded-2xl shadow-sm p-5 border-t-4 border-[#685AFF]">
-          <header class="mb-4">
-            <h3 class="font-black text-gray-800">Resumen</h3>
-            <p class="text-xs text-gray-400">Estado actual</p>
+      <aside class="col-12 col-xl-3 d-flex flex-column gap-3">
+        <article class="bg-white rounded-4 shadow-sm p-4" style="border-top: 4px solid #685aff">
+          <header class="mb-3">
+            <h3 class="fw-black text-dark fs-6 mb-0">Resumen</h3>
+            <p class="text-secondary mb-0" style="font-size: 0.7rem">Estado actual</p>
           </header>
-
-          <section class="space-y-3">
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100">
-              <span class="text-sm font-semibold text-gray-700">Disponibles</span>
-              <span class="text-xl font-black text-green-500">0</span>
+          <div class="d-flex flex-column gap-2">
+            <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light">
+              <span class="small fw-semibold text-dark">Disponibles</span>
+              <span class="fw-black fs-5 text-success">{{ store.resumen.disponibles }}</span>
             </div>
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100">
-              <span class="text-sm font-semibold text-gray-700">Ocupadas</span>
-              <span class="text-xl font-black text-red-500">0</span>
+            <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light">
+              <span class="small fw-semibold text-dark">Ocupadas</span>
+              <span class="fw-black fs-5 text-danger">{{ store.resumen.ocupadas }}</span>
             </div>
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100">
-              <span class="text-sm font-semibold text-gray-700">Mantenimiento</span>
-              <span class="text-xl font-black text-yellow-500">0</span>
+            <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light">
+              <span class="small fw-semibold text-dark">Mantenimiento</span>
+              <span class="fw-black fs-5 text-warning">{{ store.resumen.mantenimiento }}</span>
             </div>
-          </section>
+          </div>
         </article>
 
-        <article class="rounded-2xl p-5 text-white bg-gradient-to-br from-[#685AFF] to-[#9CCFFF]">
-          <p class="text-white/70 text-xs uppercase tracking-wider">Ingresos estimados hoy</p>
-          <p class="text-3xl font-black mt-1">$0</p>
+        <article
+          class="rounded-4 p-4 text-white"
+          style="background: linear-gradient(135deg, #685aff, #9ccfff)"
+        >
+          <p
+            class="small text-uppercase fw-medium mb-1"
+            style="color: rgba(255,255,255,0.7); letter-spacing: 0.05em"
+          >
+            Ingresos estimados hoy
+          </p>
+          <p class="fs-3 fw-black mb-0">{{ store.ingresosEstimados }}</p>
         </article>
       </aside>
     </div>
+     <pos-modal />
   </div>
+
+ 
 </template>
 
 <script>
+import { useConsolasStore } from '../stores/consolasStore'
+import { usePosStore } from '../stores/posStore'
+import PosModal from '../components/posModal.vue'
+
 export default {
   name: 'ConsolasView',
+
+  components: {
+    PosModal,               // ← registrar el componente aquí
+  },
+
+  setup() {
+    const store = useConsolasStore()
+    const pos = usePosStore()
+    return { store, pos }
+  },
+
+  data() {
+    return {
+      filtros: [
+        { label: 'Todas',         value: 'todas',         color: '#685aff' },
+        { label: 'Disponibles',   value: 'disponible',    color: '#22c55e' },
+        { label: 'Ocupadas',      value: 'ocupada',       color: '#ef4444' },
+        { label: 'Mantenimiento', value: 'mantenimiento', color: '#eab308' },
+      ],
+    }
+  },
 }
 </script>
+
+<style scoped>
+.card-consola {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+.card-consola:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(104, 90, 255, 0.15) !important;
+  border-color: #685aff33;
+}
+</style>

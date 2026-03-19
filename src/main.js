@@ -1,4 +1,4 @@
-import './style.css' // ← que apunte al archivo correcto
+// ← que apunte al archivo correcto
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -55,6 +55,9 @@ library.add(
   faTag,
   faChartBar,
 )
+
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 const app = createApp(App)
 app.use(createPinia())

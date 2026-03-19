@@ -1,73 +1,106 @@
 <template>
   <main
-    class="min-h-screen flex items-center justify-center py-12 px-4"
+    class="min-vh-100 d-flex align-items-center justify-content-center py-5 px-3"
     style="background: linear-gradient(135deg, #685aff, #9ccfff)"
   >
-    <section class="max-w-md w-full space-y-8">
+    <section class="w-100" style="max-width: 420px">
       <!-- Header -->
-      <header class="text-center">
+      <header class="text-center mb-4">
         <div
-          class="mx-auto h-16 w-16 rounded-full flex items-center justify-center shadow-lg"
-          style="background: #f0ffc3"
+          class="mx-auto rounded-circle d-flex align-items-center justify-content-center shadow"
+          style="background: #f0ffc3; width: 64px; height: 64px"
         >
-          <font-awesome-icon icon="gamepad" class="text-4xl" style="color: #685aff" />
+          <font-awesome-icon icon="gamepad" class="fs-2" style="color: #685aff" />
         </div>
-
-        <h1 class="mt-6 text-4xl font-extrabold text-white">Renta de Consolas</h1>
-
-        <h2 class="mt-2 text-lg text-white/80">Iniciar sesión</h2>
+        <h1 class="mt-4 fw-bolder text-white fs-2">Renta de Consolas</h1>
+        <h2 class="mt-1 fs-6 text-white text-opacity-75">Iniciar sesión</h2>
       </header>
 
       <!-- Card -->
-      <article class="bg-white rounded-2xl shadow-2xl p-8 space-y-6">
-        <section>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            <font-awesome-icon icon="envelope" class="mr-2" style="color: #685aff" />
+      <article class="bg-white rounded-4 shadow-lg p-4 p-sm-5">
+        <div class="mb-4">
+          <label class="form-label text-secondary fw-medium">
+            <font-awesome-icon icon="envelope" class="me-2" style="color: #685aff" />
             Correo electrónico
           </label>
-
           <input
+            v-model="email"
             type="email"
             placeholder="usuario@consolas.com"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 transition-all"
+            class="form-control py-2"
+            :disabled="authStore.isLoading"
+            @keyup.enter="handleLogin"
           />
-        </section>
+        </div>
 
-        <section>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            <font-awesome-icon icon="lock" class="mr-2" style="color: #685aff" />
+        <div class="mb-4">
+          <label class="form-label text-secondary fw-medium">
+            <font-awesome-icon icon="lock" class="me-2" style="color: #685aff" />
             Contraseña
           </label>
-
           <input
+            v-model="password"
             type="password"
             placeholder="••••••••"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 transition-all"
+            class="form-control py-2"
+            :disabled="authStore.isLoading"
+            @keyup.enter="handleLogin"
           />
-        </section>
+        </div>
 
-        <section>
+        <div class="d-grid">
           <button
-            class="w-full flex justify-center items-center gap-2 py-3 px-4 text-white font-semibold rounded-lg transition-all shadow-lg hover:opacity-90"
+            class="btn text-white fw-semibold py-2 d-flex justify-content-center align-items-center gap-2 shadow"
             style="background: #685aff"
+            :disabled="authStore.isLoading"
+            @click="handleLogin"
           >
-            <font-awesome-icon icon="sign-in-alt" />
-            Ingresar
+            <span
+              v-if="authStore.isLoading"
+              class="spinner-border spinner-border-sm"
+              role="status"
+            />
+            <template v-else>
+              <font-awesome-icon icon="sign-in-alt" />
+              Ingresar
+            </template>
           </button>
-        </section>
+        </div>
       </article>
 
       <!-- Footer -->
-      <footer class="text-center text-white text-sm">
-        <p>&copy; 2026 Renta de Consolas</p>
+      <footer class="text-center text-white mt-4">
+        <small>&copy; 2026 Renta de Consolas</small>
       </footer>
     </section>
   </main>
 </template>
 
 <script>
+import { useAuthStore } from '../store/authStore';
+import { useRouter } from 'vue-router';
+
 export default {
   name: 'LoginView',
+
+  setup() {
+    const authStore = useAuthStore()
+    const router = useRouter()
+    return { authStore, router }
+  },
+
+  data() {
+    return {
+      email: '',
+      password: '',
+    }
+  },
+
+  methods: {
+    async handleLogin() {
+      await this.authStore.login(this.email, this.password, this.router)
+    },
+  },
 }
 </script>
 
@@ -75,7 +108,6 @@ export default {
 article {
   animation: slideUp 0.4s ease-out;
 }
-
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -85,5 +117,14 @@ article {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.btn:not(:disabled):hover {
+  opacity: 0.9;
 }
 </style>
