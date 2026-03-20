@@ -1,10 +1,9 @@
 <template>
   <div class="d-flex vh-100 overflow-hidden" style="background-color: #f8f8ff">
-
     <!-- SIDEBAR -->
     <aside
       :class="sidebarOpen ? 'sidebar-open' : 'sidebar-closed'"
-      class="sidebar d-flex flex-column shadow z-2 position-relative transition-sidebar"
+      class="sidebar d-flex flex-column shadow z-2 position-relative"
       style="background-color: #685aff"
     >
       <!-- Sidebar Header -->
@@ -26,7 +25,7 @@
       </header>
 
       <!-- Sidebar Nav -->
-      <nav class="flex-1 py-3 px-2 overflow-auto d-flex flex-column gap-1">
+      <nav class="flex-grow-1 py-3 px-2 overflow-auto d-flex flex-column gap-1">
         <router-link
           v-for="item in menuItems"
           :key="item.to"
@@ -37,7 +36,6 @@
         >
           <font-awesome-icon :icon="item.icon" class="flex-shrink-0" style="width: 20px" />
           <span v-if="sidebarOpen" class="small text-truncate">{{ item.label }}</span>
-
           <!-- Tooltip collapsed -->
           <div
             v-if="!sidebarOpen"
@@ -71,7 +69,6 @@
             </p>
           </div>
         </div>
-
         <button
           @click="authStore.logout($router)"
           class="btn w-100 d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-white text-opacity-75 btn-logout"
@@ -83,8 +80,8 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <div class="flex-1 d-flex flex-column overflow-hidden">
-
+    <!-- ✅ FIX 1: flex-1 → flex-grow-1 (flex-1 es Tailwind, no Bootstrap) -->
+    <div class="flex-grow-1 d-flex flex-column overflow-hidden">
       <!-- Top Header -->
       <header class="bg-white shadow-sm px-4 py-3 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-3">
@@ -95,7 +92,6 @@
           >
             <font-awesome-icon :icon="sidebarOpen ? 'times' : 'bars'" class="fs-5" />
           </button>
-
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0 small">
               <li class="breadcrumb-item">
@@ -109,7 +105,6 @@
             </ol>
           </nav>
         </div>
-
         <div class="d-flex align-items-center gap-3">
           <time
             :datetime="currentTime"
@@ -117,7 +112,6 @@
           >
             {{ currentTime }}
           </time>
-
           <div
             class="d-flex align-items-center gap-2 px-3 py-1 rounded-pill"
             style="background-color: #f0ffc3"
@@ -136,56 +130,13 @@
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 overflow-auto p-4">
+      <!-- ✅ FIX 1: flex-1 → flex-grow-1 -->
+      <main class="flex-grow-1 overflow-auto p-4">
         <RouterView />
       </main>
     </div>
   </div>
 </template>
-
-
-
-<style scoped>
-/* Sidebar width */
-.sidebar {
-  transition: width 0.3s ease;
-  overflow: hidden;
-}
-.sidebar-open  { width: 256px; }
-.sidebar-closed { width: 64px; }
-
-/* Sidebar logo box */
-.sidebar-logo {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-}
-
-/* Nav links */
-.nav-active { color: #685aff !important; }
-.nav-inactive:hover {
-  color: #fff !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Tooltip on collapsed sidebar */
-.nav-group .nav-tooltip {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.nav-group:hover .nav-tooltip { opacity: 1; }
-
-/* Logout button */
-.btn-logout { transition: background-color 0.2s, color 0.2s; }
-.btn-logout:hover {
-  background-color: rgba(255, 91, 91, 0.8) !important;
-  color: #fff !important;
-  opacity: 1;
-}
-</style>
 
 <script>
 import { useAuthStore } from '@/modules/login/store/authStore'
@@ -195,7 +146,6 @@ export default {
     const authStore = useAuthStore()
     return { authStore }
   },
-
   data() {
     return {
       sidebarOpen: true,
@@ -206,16 +156,13 @@ export default {
       ],
     }
   },
-
   mounted() {
     this.updateTime()
     this.timer = setInterval(this.updateTime, 1000)
   },
-
   beforeUnmount() {
     clearInterval(this.timer)
   },
-
   methods: {
     updateTime() {
       this.currentTime = new Date().toLocaleTimeString()
@@ -224,10 +171,40 @@ export default {
 }
 </script>
 
+<!-- ✅ FIX 2: Un solo bloque <style scoped> (se eliminó el duplicado con valores distintos) -->
 <style scoped>
 .sidebar {
-  transition: width 0.3s;
+  transition: width 0.3s ease;
+  overflow: hidden;
 }
-.sidebar-open { width: 250px; }
-.sidebar-closed { width: 70px; }
+.sidebar-open  { width: 256px; }
+.sidebar-closed { width: 64px; }
+
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.nav-active { color: #685aff !important; }
+.nav-inactive:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.nav-group .nav-tooltip {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.nav-group:hover .nav-tooltip { opacity: 1; }
+
+.btn-logout { transition: background-color 0.2s, color 0.2s; }
+.btn-logout:hover {
+  background-color: rgba(255, 91, 91, 0.8) !important;
+  color: #fff !important;
+  opacity: 1;
+}
 </style>
