@@ -153,6 +153,7 @@ export default {
       menuItems: [
         { to: '/dashboard', icon: 'chart-bar', label: 'Dashboard' },
         { to: '/consolas', icon: 'gamepad', label: 'Consolas' },
+        { to: '/games', icon:'compact-disc', label : 'Juegos'}
       ],
     }
   },

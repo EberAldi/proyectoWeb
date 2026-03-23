@@ -22,6 +22,12 @@ const router = createRouter({
           component: () => import('.././modules/admin/consoles/views/consolasView.vue'),
           meta: { title: 'Consolas' },
         },
+        {
+          path: 'games',
+          name: 'games',
+          component : () => import('../modules/admin/games/views/dashboardGames.vue'),
+          meta: {title: 'games'}
+        }
       ],
     },
   ],

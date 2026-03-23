@@ -26,7 +26,14 @@ import {
   faCog,
   faShoppingCart,
   faSignOutAlt,
+  faCompactDisc,
+  faToggleOn,
+  faTrash,
+  faToggleOff,
+  faDesktop,
+  faPlus
 } from '@fortawesome/free-solid-svg-icons'
+import { faPlaystation, faXbox } from '@fortawesome/free-brands-svg-icons'
 
 library.add(
   faUser,
@@ -55,6 +62,15 @@ library.add(
   faCog,
   faTag,
   faChartBar,
+  faCompactDisc,
+  faToggleOn,
+  faTrash,
+  faToggleOff,
+  faDesktop,
+  faPlus,
+  faPlaystation,
+  faXbox,
+  
 )
 
 
