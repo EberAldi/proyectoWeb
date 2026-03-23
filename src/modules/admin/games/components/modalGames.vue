@@ -97,32 +97,7 @@
                 </div>
               </div>
 
-              <!-- Precio por hora -->
-              <div>
-                <label class="form-label small fw-bold text-dark mb-1">
-                  Precio por hora (MXN) <span class="text-danger">*</span>
-                </label>
-                <div class="input-group">
-                  <span
-                    class="input-group-text fw-bold"
-                    style="background-color: #f1efff; color: #685aff; border-color: #e2e8f0"
-                  >
-                    $
-                  </span>
-                  <input
-                    v-model.number="form.precioPorHora"
-                    type="number"
-                    min="1"
-                    class="form-control rounded-end-3"
-                    :class="{ 'is-invalid': errores.precioPorHora }"
-                    placeholder="30"
-                    style="border-color: #e2e8f0"
-                  />
-                  <div v-if="errores.precioPorHora" class="invalid-feedback">
-                    {{ errores.precioPorHora }}
-                  </div>
-                </div>
-              </div>
+             
 
               <!-- Disponibilidad toggle -->
               <div
