@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import Swal from 'sweetalert2'
-
+import api from '../../../../src/service/api.js'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
@@ -15,77 +15,32 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async login(email, password, router) {
-      if (!email || !password) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Campos incompletos',
-          text: 'Por favor ingresa tu correo y contraseña',
-          confirmButtonColor: '#4F46E5',
-        })
-        return
-      }
-
+    try {
       this.isLoading = true
 
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+      const { data } = await api.post('/api/login/', {
+      email,
+      password
+      })
 
-        const usuarios = [
-          {
-            id: 1,
-            email: 'admin@consolas.com',
-            password: '123456',
-            nombre: 'Administrador',
-            role: 'admin',
-          },
-          {
-            id: 2,
-            email: 'cajero@consolas.com',
-            password: '123456',
-            nombre: 'Cajero 1',
-            role: 'cajero',
-          },
-        ]
+      this.user = data.user
+      this.isAuthenticated = true
 
-        const encontrado = usuarios.find((u) => u.email === email && u.password === password)
+      router.push('/dashboard')
 
-        if (!encontrado) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Acceso denegado',
-            text: 'Correo o contraseña incorrectos',
-            confirmButtonColor: '#4F46E5',
-          })
-          return
-        }
+    } catch (error) {
+    console.error(error)
 
-        const { password: _, ...usuarioSeguro } = encontrado
-        this.user = usuarioSeguro
-        this.isAuthenticated = true
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Credenciales incorrectas'
+    })
 
-        await Swal.fire({
-          icon: 'success',
-          title: `¡Bienvenido, ${this.user.nombre}!`,
-          timer: 1500,
-          showConfirmButton: false,
-        })
-
-        if (this.user.role === 'admin') {
-          router.push('/dashboard')
-        } else {
-          router.push('/pos')
-        }
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error del servidor',
-          text: 'Intenta de nuevo más tarde',
-          confirmButtonColor: '#4F46E5',
-        })
-      } finally {
-        this.isLoading = false
-      }
-    },
+  } finally {
+    this.isLoading = false
+  }
+},
 
     logout(router) {
       Swal.fire({
