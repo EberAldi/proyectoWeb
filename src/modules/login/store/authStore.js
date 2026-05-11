@@ -5,6 +5,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     isLoading: false,
+    isGoogleLoading: false,
     isAuthenticated: false,
   }),
 
@@ -41,6 +42,49 @@ export const useAuthStore = defineStore('auth', {
     this.isLoading = false
   }
 },
+
+    async loginWithGoogle(_router) {
+      try {
+        this.isGoogleLoading = true
+
+        // Llama al backend para obtener la URL de OAuth de Google
+        const { data } = await api.get('/api/auth/google/')
+        // El backend devuelve la URL de redirección de Google
+        if (data.url) {
+          window.location.href = data.url
+        }
+      } catch (error) {
+        console.error(error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo conectar con Google. Intenta de nuevo.',
+        })
+      } finally {
+        this.isGoogleLoading = false
+      }
+    },
+
+    // Llamar este método desde el callback de Google (ruta /auth/google/callback)
+    async handleGoogleCallback(code, router) {
+      try {
+        this.isLoading = true
+        const { data } = await api.post('/api/auth/google/callback/', { code })
+        this.user = data.user
+        this.isAuthenticated = true
+        router.push('/dashboard')
+      } catch (error) {
+        console.error(error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Autenticación con Google fallida.',
+        })
+        router.push('/')
+      } finally {
+        this.isLoading = false
+      }
+    },
 
     logout(router) {
       Swal.fire({

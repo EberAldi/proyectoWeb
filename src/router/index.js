@@ -27,6 +27,12 @@ const router = createRouter({
           name: 'games',
           component : () => import('../modules/admin/games/views/dashboardGames.vue'),
           meta: {title: 'games'}
+        },
+        {
+          path: 'pago-qr',
+          name: 'pago-qr',
+          component: () => import('../modules/admin/pagos/views/PagoQR.vue'),
+          meta: { title: 'Pago QR' },
         }
       ],
     },

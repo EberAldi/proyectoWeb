@@ -25,7 +25,7 @@
       </header>
 
       <!-- Sidebar Nav -->
-      <nav class="flex-grow-1 py-3 px-2 overflow-auto d-flex flex-column gap-1">
+      <nav class="grow py-3 px-2 overflow-auto d-flex flex-column gap-1">
         <router-link
           v-for="item in menuItems"
           :key="item.to"
@@ -34,7 +34,7 @@
           :class="$route.path === item.to ? 'nav-active fw-semibold' : 'text-white text-opacity-75 nav-inactive'"
           :style="$route.path === item.to ? 'background-color: #F0FFC3;' : ''"
         >
-          <font-awesome-icon :icon="item.icon" class="flex-shrink-0" style="width: 20px" />
+          <font-awesome-icon :icon="item.icon" class="shrink-0" style="width: 20px" />
           <span v-if="sidebarOpen" class="small text-truncate">{{ item.label }}</span>
           <!-- Tooltip collapsed -->
           <div
@@ -55,7 +55,7 @@
           style="background-color: rgba(255,255,255,0.1)"
         >
           <div
-            class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+            class="rounded-circle d-flex align-items-center justify-content-center shrink"
             style="background-color: #9ccfff; width: 32px; height: 32px"
           >
             <font-awesome-icon icon="user" class="small" style="color: #685aff" />
@@ -73,7 +73,7 @@
           @click="authStore.logout($router)"
           class="btn w-100 d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-white text-opacity-75 btn-logout"
         >
-          <font-awesome-icon icon="sign-out-alt" class="flex-shrink-0" style="width: 20px" />
+          <font-awesome-icon icon="sign-out-alt" class="shrink-0" style="width: 20px" />
           <span v-if="sidebarOpen" class="small fw-medium">Cerrar Sesión</span>
         </button>
       </footer>
@@ -81,7 +81,7 @@
 
     <!-- MAIN CONTENT -->
     <!-- ✅ FIX 1: flex-1 → flex-grow-1 (flex-1 es Tailwind, no Bootstrap) -->
-    <div class="flex-grow-1 d-flex flex-column overflow-hidden">
+    <div class="grow d-flex flex-column overflow-hidden">
       <!-- Top Header -->
       <header class="bg-white shadow-sm px-4 py-3 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-3">
@@ -131,7 +131,7 @@
 
       <!-- Page Content -->
       <!-- ✅ FIX 1: flex-1 → flex-grow-1 -->
-      <main class="flex-grow-1 overflow-auto p-4">
+      <main class="grow overflow-auto p-4">
         <RouterView />
       </main>
     </div>
@@ -153,7 +153,8 @@ export default {
       menuItems: [
         { to: '/dashboard', icon: 'chart-bar', label: 'Dashboard' },
         { to: '/consolas', icon: 'gamepad', label: 'Consolas' },
-        { to: '/games', icon:'compact-disc', label : 'Juegos'}
+        { to: '/games', icon:'compact-disc', label : 'Juegos'},
+        { to: '/pago-qr', icon: 'shopping-cart', label: 'Pago QR' },
       ],
     }
   },
