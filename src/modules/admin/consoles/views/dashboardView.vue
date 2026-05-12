@@ -100,6 +100,35 @@
           </ul>
         </article>
 
+
+        <!-- Widget Clima -->
+        <article class="rounded-4 shadow-sm overflow-hidden text-white" style="background: linear-gradient(135deg, #685aff, #9ccfff)">
+          <div class="p-4">
+            <div v-if="weatherLoading" class="text-center py-2">
+              <span class="spinner-border spinner-border-sm me-2" />
+              <span class="small">Obteniendo clima...</span>
+            </div>
+            <div v-else-if="weatherError" class="text-center small py-2" style="opacity: 0.8">
+              No se pudo obtener el clima
+            </div>
+            <div v-else-if="weather">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <p class="small mb-0 fw-medium" style="opacity: 0.8">{{ weather.name }}, {{ weather.sys.country }}</p>
+                  <p class="display-6 fw-black mb-0">{{ Math.round(weather.main.temp) }}°C</p>
+                  <p class="small mb-0 text-capitalize" style="opacity: 0.85">{{ weather.weather[0].description }}</p>
+                </div>
+                <img :src="`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`" width="64" height="64" />
+              </div>
+              <div class="d-flex gap-3 small" style="opacity: 0.85">
+                <span>💧 {{ weather.main.humidity }}%</span>
+                <span>💨 {{ weather.wind.speed }} m/s</span>
+                <span>🌡️ Sensación {{ Math.round(weather.main.feels_like) }}°C</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
         <!-- Alertas -->
         <article class="bg-white rounded-4 shadow-sm overflow-hidden">
           <header class="px-4 py-3 border-bottom">
@@ -174,6 +203,14 @@ export default {
     }
   },
 
+  data() {
+    return {
+      weather: null,
+      weatherLoading: false,
+      weatherError: false,
+    }
+  },
+
   computed: {
     fechaActual() {
       return new Date().toLocaleDateString('es-MX', {
@@ -182,6 +219,33 @@ export default {
         month: 'long',
         day: 'numeric',
       })
+    },
+  },
+
+  mounted() {
+    this.obtenerClima()
+  },
+
+  methods: {
+    async obtenerClima() {
+      this.weatherLoading = true
+      this.weatherError = false
+      try {
+        // Obtiene ubicación del usuario
+        const pos = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject)
+        )
+        const { latitude, longitude } = pos.coords
+        const apiKey = import.meta.env.VITE_WEATHER_API_KEY
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric&lang=es`
+        )
+        this.weather = await res.json()
+      } catch {
+        this.weatherError = true
+      } finally {
+        this.weatherLoading = false
+      }
     },
   },
 }
