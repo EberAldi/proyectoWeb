@@ -1,35 +1,60 @@
 import { defineStore } from 'pinia'
+import api from '@/service/api'
 
 export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
     stats: {
-      consolasActivas: 4,
-      rentasHoy: 12,
-      clientesHoy: 9,
-      productosVendidos: 27,
+      consolasActivas: 0,
+      rentasHoy: 0,
+      clientesHoy: 0,
+      productosVendidos: 0,
     },
-    ingresosDelDia: 1850,
-    rentasActivas: [
-      { id: 1, consola: 'PS5',       cliente: 'Carlos M.',   inicio: '10:00', duracion: '2h',  monto: 120 },
-      { id: 2, consola: 'Xbox S/X',  cliente: 'Ana R.',      inicio: '11:30', duracion: '1h',  monto: 60  },
-      { id: 3, consola: 'Nintendo',  cliente: 'Luis P.',     inicio: '12:00', duracion: '3h',  monto: 150 },
-      { id: 4, consola: 'PS4',       cliente: 'Sofía G.',    inicio: '13:15', duracion: '2h',  monto: 100 },
-    ],
-    ultimasVentas: [
-      { id: 1, producto: 'Coca-Cola 600ml', cantidad: 2, total: 40  },
-      { id: 2, producto: 'Doritos',         cantidad: 3, total: 45  },
-      { id: 3, producto: 'Agua 1L',         cantidad: 1, total: 15  },
-      { id: 4, producto: 'Control extra',   cantidad: 1, total: 50  },
-    ],
-    alertas: [
-      { id: 1, tipo: 'warning', mensaje: 'Control de PS5 con batería baja'     },
-      { id: 2, tipo: 'danger',  mensaje: 'Renta #2 por vencer en 10 min'       },
-      { id: 3, tipo: 'info',    mensaje: '3 consolas sin renta disponibles'    },
-    ],
+
+    ingresosDelDia: 0,
+
+    rentasActivas: [],
+
+    ultimasVentas: [],
+
+    loading: false,
   }),
 
   getters: {
     totalIngresos: (state) =>
-      `$${state.ingresosDelDia.toLocaleString('es-MX')}`,
+      `$${Number(state.ingresosDelDia).toLocaleString('es-MX')}`,
+  },
+
+  actions: {
+
+    async cargarDashboard() {
+      try {
+        this.loading = true
+
+        const [
+          stats,
+          rentas,
+          ingresos,
+          ventas,
+        ] = await Promise.all([
+          api.get('/dashboard/stats'),
+          api.get('/dashboard/rentas-activas'),
+          api.get('/dashboard/ingresos'),
+          api.get('/dashboard/ultimas-ventas'),
+        ])
+
+        this.stats = stats.data
+
+        this.rentasActivas = rentas.data
+
+        this.ingresosDelDia = ingresos.data.total
+
+        this.ultimasVentas = ventas.data
+
+      } catch (error) {
+        console.error('Error dashboard:', error)
+      } finally {
+        this.loading = false
+      }
+    },
   },
 })

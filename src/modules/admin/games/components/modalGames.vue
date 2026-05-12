@@ -1,5 +1,4 @@
 <template>
-  <!-- Backdrop -->
   <teleport to="body">
     <transition name="fade">
       <div
@@ -7,11 +6,10 @@
         class="modal-backdrop-custom"
         @click.self="store.cerrarModal()"
       >
-        <!-- Panel -->
         <transition name="slide-up">
           <div v-if="store.modalAbierto" class="modal-panel rounded-4 shadow-lg bg-white overflow-hidden">
 
-            <!-- Header con degradado -->
+            <!-- Header -->
             <header
               class="px-4 py-4 d-flex align-items-center justify-content-between"
               style="background: linear-gradient(135deg, #685aff, #9ccfff)"
@@ -21,7 +19,7 @@
                   class="rounded-3 d-flex align-items-center justify-content-center"
                   style="background: rgba(255,255,255,0.2); width: 40px; height: 40px"
                 >
-                  <font-awesome-icon icon="plus" class="text-white" />
+                  <font-awesome-icon icon="compact-disc" class="text-white" />
                 </div>
                 <div>
                   <h2 class="text-white fw-black mb-0 fs-5">Agregar juego</h2>
@@ -30,11 +28,7 @@
                   </p>
                 </div>
               </div>
-              <button
-                class="btn-close btn-close-white"
-                @click="store.cerrarModal()"
-                aria-label="Cerrar"
-              />
+              <button class="btn-close btn-close-white" @click="store.cerrarModal()" />
             </header>
 
             <!-- Body -->
@@ -52,10 +46,9 @@
                   :class="{ 'is-invalid': errores.nombre }"
                   placeholder="Ej. Spider-Man 2"
                   style="border-color: #e2e8f0"
+                  @input="errores.nombre = ''"
                 />
-                <div v-if="errores.nombre" class="invalid-feedback">
-                  {{ errores.nombre }}
-                </div>
+                <div v-if="errores.nombre" class="invalid-feedback">{{ errores.nombre }}</div>
               </div>
 
               <!-- Consola + Género -->
@@ -64,18 +57,30 @@
                   <label class="form-label small fw-bold text-dark mb-1">
                     Consola <span class="text-danger">*</span>
                   </label>
+
+                  <!-- Loading consolas -->
+                  <div v-if="store.consolas.length === 0" class="form-select rounded-3 text-secondary d-flex align-items-center gap-2" style="border-color: #e2e8f0; pointer-events: none">
+                    <span class="spinner-border spinner-border-sm" style="color: #685aff" />
+                    <span style="font-size: 0.85rem">Cargando…</span>
+                  </div>
+
                   <select
+                    v-else
                     v-model="form.consola"
                     class="form-select rounded-3"
                     :class="{ 'is-invalid': errores.consola }"
                     style="border-color: #e2e8f0"
+                    @change="errores.consola = ''"
                   >
                     <option value="" disabled>Seleccionar…</option>
                     <option v-for="c in store.consolas" :key="c" :value="c">{{ c }}</option>
                   </select>
-                  <div v-if="errores.consola" class="invalid-feedback">
-                    {{ errores.consola }}
-                  </div>
+                  <div v-if="errores.consola" class="invalid-feedback">{{ errores.consola }}</div>
+
+                  <!-- Info de cuántas consolas aplican -->
+                  <p v-if="form.consola" class="mb-0 mt-1" style="font-size: 0.7rem; color: #685aff">
+                    {{ consolasMatch }} consola(s) con ese nombre en el sistema
+                  </p>
                 </div>
 
                 <div class="col-6">
@@ -87,19 +92,16 @@
                     class="form-select rounded-3"
                     :class="{ 'is-invalid': errores.genero }"
                     style="border-color: #e2e8f0"
+                    @change="errores.genero = ''"
                   >
                     <option value="" disabled>Seleccionar…</option>
                     <option v-for="g in store.generos" :key="g" :value="g">{{ g }}</option>
                   </select>
-                  <div v-if="errores.genero" class="invalid-feedback">
-                    {{ errores.genero }}
-                  </div>
+                  <div v-if="errores.genero" class="invalid-feedback">{{ errores.genero }}</div>
                 </div>
               </div>
 
-             
-
-              <!-- Disponibilidad toggle -->
+              <!-- Toggle disponibilidad -->
               <div
                 class="d-flex align-items-center justify-content-between p-3 rounded-3"
                 style="background-color: #f8f7ff; border: 1.5px solid #e2e8f0"
@@ -122,20 +124,10 @@
                 </div>
               </div>
 
-              <!-- Error general -->
-              <div
-                v-if="errorGeneral"
-                class="alert alert-danger small rounded-3 py-2 mb-0"
-              >
-                {{ errorGeneral }}
-              </div>
             </div>
 
             <!-- Footer -->
-            <footer
-              class="px-4 py-3 d-flex justify-content-end gap-2"
-              style="border-top: 1px solid #f1f0ff"
-            >
+            <footer class="px-4 py-3 d-flex justify-content-end gap-2" style="border-top: 1px solid #f1f0ff">
               <button
                 class="btn btn-sm fw-semibold rounded-3 px-4"
                 style="background-color: #f1f0ff; color: #685aff"
@@ -146,10 +138,10 @@
               <button
                 class="btn btn-sm fw-black text-white rounded-3 px-4"
                 style="background-color: #685aff"
-                :disabled="guardando"
+                :disabled="store.isLoading"
                 @click="guardar()"
               >
-                <span v-if="guardando" class="spinner-border spinner-border-sm me-1" />
+                <span v-if="store.isLoading" class="spinner-border spinner-border-sm me-1" />
                 <font-awesome-icon v-else icon="plus" class="me-1" />
                 Agregar juego
               </button>
@@ -163,13 +155,12 @@
 </template>
 
 <script>
-import { useJuegosStore } from '../store/games';
+import { useJuegosStore } from '../store/games'
 
 const formInicial = () => ({
   nombre: '',
   consola: '',
   genero: '',
-  precioPorHora: null,
   disponible: true,
 })
 
@@ -185,18 +176,22 @@ export default {
     return {
       form: formInicial(),
       errores: {},
-      errorGeneral: '',
-      guardando: false,
     }
   },
 
+  computed: {
+    // Cuántas consolas físicas coinciden con la seleccionada
+    consolasMatch() {
+      if (!this.form.consola) return 0
+      return this.store.consolasRaw.filter((c) => c.nombre === this.form.consola).length
+    },
+  },
+
   watch: {
-    // Limpia el form cuando el modal se abre
     'store.modalAbierto'(val) {
       if (val) {
         this.form = formInicial()
         this.errores = {}
-        this.errorGeneral = ''
       }
     },
   },
@@ -204,22 +199,16 @@ export default {
   methods: {
     validar() {
       const e = {}
-      if (!this.form.nombre.trim()) e.nombre = 'El nombre es obligatorio.'
-      if (!this.form.consola) e.consola = 'Selecciona una consola.'
-      if (!this.form.genero) e.genero = 'Selecciona un género.'
-      if (!this.form.precioPorHora || this.form.precioPorHora < 1)
-        e.precioPorHora = 'Ingresa un precio válido.'
+      if (!this.form.nombre.trim()) e.nombre  = 'El nombre es obligatorio.'
+      if (!this.form.consola)       e.consola = 'Selecciona una consola.'
+      if (!this.form.genero)        e.genero  = 'Selecciona un género.'
       this.errores = e
       return Object.keys(e).length === 0
     },
 
     async guardar() {
       if (!this.validar()) return
-      this.guardando = true
-      // Simula latencia mínima para feedback visual
-      await new Promise((r) => setTimeout(r, 500))
-      this.store.agregarJuego({ ...this.form })
-      this.guardando = false
+      await this.store.agregarJuego({ ...this.form })
     },
   },
 }
@@ -237,31 +226,18 @@ export default {
   justify-content: center;
   padding: 1rem;
 }
-
 .modal-panel {
   width: 100%;
   max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
 }
-
-/* Transición backdrop */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* Transición panel */
-.slide-up-enter-active,
-.slide-up-leave-active {
+.fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.slide-up-enter-active, .slide-up-leave-active {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
 }
-.slide-up-enter-from,
-.slide-up-leave-to {
+.slide-up-enter-from, .slide-up-leave-to {
   transform: translateY(24px) scale(0.97);
   opacity: 0;
 }

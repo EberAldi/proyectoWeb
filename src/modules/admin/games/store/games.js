@@ -1,177 +1,146 @@
-// stores/juegosStore.js
 import { defineStore } from 'pinia'
+import Swal from 'sweetalert2'
+import api from '../../../../service/api.js'
 
 export const useJuegosStore = defineStore('juegos', {
   state: () => ({
     filtroActivo: 'todos',
     modalAbierto: false,
-
-    consolas: [
-      'PlayStation 5',
-      'PlayStation 4',
-      'Xbox Series X',
-      'Xbox One',
-      'Nintendo Switch',
-      'PC',
-    ],
-
+    isLoading: false,
+    juegos: [],
+    consolas: [],       // nombres únicos para el select
+    consolasRaw: [],    // objetos completos { id, nombre, ... }
     generos: [
-      'Acción',
-      'Aventura',
-      'Deportes',
-      'Carreras',
-      'RPG',
-      'Peleas',
-      'Terror',
-      'Estrategia',
-      'Plataformas',
-      'Disparos',
-    ],
-
-    juegos: [
-      {
-        id: 1,
-        nombre: 'God of War Ragnarök',
-        consola: 'PlayStation 5',
-        genero: 'Acción',
-        imagen: null,
-        disponible: true,
-        precioPorHora: 35,
-        rentasHoy: 4,
-      },
-      {
-        id: 2,
-        nombre: 'FIFA 25',
-        consola: 'PlayStation 5',
-        genero: 'Deportes',
-        imagen: null,
-        disponible: false,
-        precioPorHora: 30,
-        rentasHoy: 7,
-      },
-      {
-        id: 3,
-        nombre: 'Forza Horizon 5',
-        consola: 'Xbox Series X',
-        genero: 'Carreras',
-        imagen: null,
-        disponible: true,
-        precioPorHora: 30,
-        rentasHoy: 2,
-      },
-      {
-        id: 4,
-        nombre: 'The Legend of Zelda: TotK',
-        consola: 'Nintendo Switch',
-        genero: 'Aventura',
-        imagen: null,
-        disponible: true,
-        precioPorHora: 25,
-        rentasHoy: 5,
-      },
-      {
-        id: 5,
-        nombre: 'Mortal Kombat 1',
-        consola: 'PlayStation 5',
-        genero: 'Peleas',
-        imagen: null,
-        disponible: false,
-        precioPorHora: 30,
-        rentasHoy: 6,
-      },
-      {
-        id: 6,
-        nombre: 'Minecraft',
-        consola: 'PC',
-        genero: 'Aventura',
-        imagen: null,
-        disponible: true,
-        precioPorHora: 20,
-        rentasHoy: 1,
-      },
+      "accion", "deportes", "peleas", "carreras", "aventura", "terror", "multijugador", "otro"
     ],
   }),
 
   getters: {
     juegosFiltrados(state) {
       if (state.filtroActivo === 'todos') return state.juegos
-      if (state.filtroActivo === 'disponible')
-        return state.juegos.filter((j) => j.disponible)
-      if (state.filtroActivo === 'ocupado')
-        return state.juegos.filter((j) => !j.disponible)
+      if (state.filtroActivo === 'disponible') return state.juegos.filter((j) => j.disponible)
+      if (state.filtroActivo === 'ocupado')    return state.juegos.filter((j) => !j.disponible)
       return state.juegos
     },
-
     resumen(state) {
       return {
-        total: state.juegos.length,
-        disponibles: state.juegos.filter((j) => j.disponible).length,
-        ocupados: state.juegos.filter((j) => !j.disponible).length,
+        total:       state.juegos.length,
+        disponibles: state.juegos.filter((j) =>  j.disponible).length,
+        ocupados:    state.juegos.filter((j) => !j.disponible).length,
       }
     },
-
     ingresosEstimados(state) {
-      const total = state.juegos.reduce(
-        (acc, j) => acc + j.precioPorHora * j.rentasHoy,
-        0,
-      )
-      return `$${total.toLocaleString('es-MX')}`
-    },
-
-    iconoConsola() {
-      return (consola) => {
-        const mapa = {
-          'PlayStation 5': 'fa-brands fa-playstation',
-          'PlayStation 4': 'fa-brands fa-playstation',
-          'Xbox Series X': 'fa-brands fa-xbox',
-          'Xbox One': 'fa-brands fa-xbox',
-          'Nintendo Switch': 'gamepad',
-          PC: 'desktop',
-        }
-        return mapa[consola] ?? 'gamepad'
-      }
+      const total = state.juegos.reduce((acc, j) => acc + j.rentasHoy, 0)
+      return `${total} rentas hoy`
     },
   },
 
   actions: {
-    setFiltro(filtro) {
-      this.filtroActivo = filtro
-    },
+    setFiltro(filtro) { this.filtroActivo = filtro },
 
     abrirModal() {
       this.modalAbierto = true
+      this.fetchConsolas()   // frescos cada vez que abre
+    },
+    cerrarModal() { this.modalAbierto = false },
+
+    _mapear(j) {
+      return {
+        ...j,
+        consola:   j.plataforma,
+        rentasHoy: j.rentasHoy ?? 0,
+      }
     },
 
-    cerrarModal() {
-      this.modalAbierto = false
+    async fetchJuegos() {
+      try {
+        this.isLoading = true
+        const { data } = await api.get('/juegos')
+        this.juegos = data.map(this._mapear)
+      } catch (error) {
+        console.error(error)
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar los juegos' })
+      } finally {
+        this.isLoading = false
+      }
     },
 
-    agregarJuego(datos) {
-      const nuevoId = this.juegos.length
-        ? Math.max(...this.juegos.map((j) => j.id)) + 1
-        : 1
-
-      this.juegos.push({
-        id: nuevoId,
-        nombre: datos.nombre,
-        consola: datos.consola,
-        genero: datos.genero,
-        imagen: datos.imagen ?? null,
-        disponible: datos.disponible,
-        precioPorHora: Number(datos.precioPorHora),
-        rentasHoy: 0,
-      })
-
-      this.cerrarModal()
+    async fetchConsolas() {
+      try {
+        const { data } = await api.get('/consolas')
+        this.consolasRaw = data
+        // Distinct por nombre
+        this.consolas = [...new Set(data.map((c) => c.nombre))]
+      } catch (error) {
+        console.error(error)
+        this.consolas = []
+      }
     },
 
-    toggleDisponibilidad(id) {
+    async agregarJuego(datos) {
+      try {
+        this.isLoading = true
+
+        // 1. Crear el juego
+        const { data: juego } = await api.post('/juegos', {
+          nombre:     datos.nombre.trim(),
+          plataforma: datos.consola,
+          genero:     datos.genero.toLowerCase(),
+          disponible: datos.disponible,
+        })
+
+        // 2. Consolas físicas que coinciden con la plataforma elegida
+        const consolasMatch = this.consolasRaw.filter((c) => c.nombre === datos.consola)
+
+        // 3. Insertar en consola_juegos por cada una
+        await Promise.all(
+          consolasMatch.map((c) =>
+            api.post(`/juegos/${juego.id}/consolas`, { consolaId: c.id })
+          )
+        )
+
+        // 4. Agregar al estado local
+        this.juegos.push(this._mapear(juego))
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Juego agregado',
+          text: consolasMatch.length
+            ? `Asignado a ${consolasMatch.length} consola(s)`
+            : 'Juego creado sin consolas asignadas',
+          showConfirmButton: false,
+          timer: 1800,
+        })
+        this.cerrarModal()
+      } catch (error) {
+        console.error(error)
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo agregar el juego' })
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async toggleDisponibilidad(id) {
       const juego = this.juegos.find((j) => j.id === id)
-      if (juego) juego.disponible = !juego.disponible
+      if (!juego) return
+      try {
+        await api.put(`/juegos/${id}`, { disponible: !juego.disponible })
+        juego.disponible = !juego.disponible
+      } catch (error) {
+        console.error(error)
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cambiar la disponibilidad' })
+      }
     },
 
-    eliminarJuego(id) {
-      this.juegos = this.juegos.filter((j) => j.id !== id)
+    async eliminarJuego(id) {
+      try {
+        await api.delete(`/juegos/${id}`)
+        this.juegos = this.juegos.filter((j) => j.id !== id)
+        Swal.fire({ icon: 'success', title: 'Eliminado', showConfirmButton: false, timer: 1200 })
+      } catch (error) {
+        console.error(error)
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el juego' })
+      }
     },
   },
 })

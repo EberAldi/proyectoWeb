@@ -155,6 +155,8 @@ export default {
         { to: '/consolas', icon: 'gamepad', label: 'Consolas' },
         { to: '/games', icon:'compact-disc', label : 'Juegos'},
         { to: '/pago-qr', icon: 'shopping-cart', label: 'Pago QR' },
+        { to: '/productos', icon: 'hamburger', label: 'Productos'},
+        { to:'/sesiones', icon:'watchman-monitoring',label:'Sesiones'}
       ],
     }
   },

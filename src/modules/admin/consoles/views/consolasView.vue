@@ -14,28 +14,53 @@
         </h1>
         <p class="text-secondary small mt-1 mb-0">Estado actual del inventario</p>
       </div>
-      <!-- Filtros -->
-      <nav class="d-flex gap-2 flex-wrap">
+ 
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <!-- Filtros -->
+        <nav class="d-flex gap-2 flex-wrap">
+          <button
+            v-for="filtro in filtros"
+            :key="filtro.value"
+            class="btn btn-sm fw-semibold rounded-3"
+            :class="store.filtroActivo === filtro.value ? 'text-white' : 'btn-outline-secondary'"
+            :style="store.filtroActivo === filtro.value
+              ? { backgroundColor: filtro.color, borderColor: filtro.color }
+              : { borderColor: filtro.color, color: filtro.color }"
+            @click="store.setFiltro(filtro.value)"
+          >
+            {{ filtro.label }}
+          </button>
+        </nav>
+ 
+        <!-- Botón agregar -->
         <button
-          v-for="filtro in filtros"
-          :key="filtro.value"
-          class="btn btn-sm fw-semibold rounded-3"
-          :class="store.filtroActivo === filtro.value ? 'text-white' : 'btn-outline-secondary'"
-          :style="store.filtroActivo === filtro.value
-            ? { backgroundColor: filtro.color, borderColor: filtro.color }
-            : { borderColor: filtro.color, color: filtro.color }"
-          @click="store.setFiltro(filtro.value)"
+          class="btn btn-sm fw-bold text-white d-flex align-items-center gap-2"
+          style="background-color: #685aff; border-radius: 0.625rem; padding: 0.45rem 1rem"
+          @click="store.abrirModal()"
         >
-          {{ filtro.label }}
+          <font-awesome-icon icon="plus" />
+          Nueva consola
         </button>
-      </nav>
+      </div>
     </header>
-
+ 
     <!-- Layout -->
     <div class="row g-4">
       <!-- Grid consolas -->
       <section class="col-12 col-xl-9">
-        <div class="row g-3">
+        <!-- Skeleton loading -->
+        <div v-if="store.isLoading" class="row g-3">
+          <div v-for="n in 6" :key="n" class="col-12 col-sm-6 col-lg-4">
+            <div class="bg-white rounded-4 shadow-sm p-4" style="height: 200px">
+              <div class="skeleton" style="height: 12px; width: 60%; margin-bottom: 12px; border-radius: 6px" />
+              <div class="skeleton" style="height: 10px; width: 40%; margin-bottom: 20px; border-radius: 6px" />
+              <div class="skeleton" style="height: 10px; width: 80%; margin-bottom: 8px; border-radius: 6px" />
+              <div class="skeleton" style="height: 10px; width: 55%; border-radius: 6px" />
+            </div>
+          </div>
+        </div>
+ 
+        <div v-else class="row g-3">
           <div
             v-for="consola in store.consolasFiltradas"
             :key="consola.id"
@@ -78,7 +103,7 @@
                     {{ consola.estado }}
                   </span>
                 </header>
-
+ 
                 <section class="d-flex flex-column gap-2 mb-3 small">
                   <div class="d-flex justify-content-between">
                     <span class="text-secondary">Controles</span>
@@ -98,7 +123,7 @@
                     ></div>
                   </div>
                 </section>
-
+ 
                 <footer class="d-flex gap-2 pt-3 border-top">
                   <button
                     class="btn btn-sm flex-grow-1 fw-bold text-white"
@@ -108,17 +133,11 @@
                   >
                     Rentar
                   </button>
-                  <button
-                    class="btn btn-sm fw-semibold px-3"
-                    style="background-color: #dbeafe; color: #685aff"
-                  >
-                    <font-awesome-icon icon="eye" />
-                  </button>
                 </footer>
               </div>
             </article>
           </div>
-
+ 
           <div v-if="store.consolasFiltradas.length === 0" class="col-12">
             <div class="bg-white rounded-4 shadow-sm p-5 text-center text-secondary small">
               No hay consolas en este estado
@@ -126,7 +145,7 @@
           </div>
         </div>
       </section>
-
+ 
       <!-- Aside -->
       <aside class="col-12 col-xl-3 d-flex flex-column gap-3">
         <article class="bg-white rounded-4 shadow-sm p-4" style="border-top: 4px solid #685aff">
@@ -149,7 +168,7 @@
             </div>
           </div>
         </article>
-
+ 
         <article
           class="rounded-4 p-4 text-white"
           style="background: linear-gradient(135deg, #685aff, #9ccfff)"
@@ -164,30 +183,41 @@
         </article>
       </aside>
     </div>
-     <pos-modal />
-  </div>
-
  
+    <pos-modal />
+ 
+    <!-- Modal agregar consola -->
+    <agregar-consola-modal
+      :visible="store.modalVisible"
+      @close="store.cerrarModal()"
+    />
+  </div>
 </template>
-
+ 
 <script>
+import { onMounted } from 'vue'
 import { useConsolasStore } from '../stores/consolasStore'
 import { usePosStore } from '../stores/posStore'
 import PosModal from '../components/posModal.vue'
-
+import AgregarConsolaModal from '../components/AgregarConsolaModal.vue'
+ 
 export default {
   name: 'ConsolasView',
-
+ 
   components: {
-    PosModal,               // ← registrar el componente aquí
+    PosModal,
+    AgregarConsolaModal,
   },
-
+ 
   setup() {
     const store = useConsolasStore()
     const pos = usePosStore()
+ 
+    onMounted(() => store.fetchConsolas())
+ 
     return { store, pos }
   },
-
+ 
   data() {
     return {
       filtros: [
@@ -200,7 +230,7 @@ export default {
   },
 }
 </script>
-
+ 
 <style scoped>
 .card-consola {
   transition: transform 0.2s, box-shadow 0.2s;
@@ -210,5 +240,14 @@ export default {
   transform: translateY(-3px);
   box-shadow: 0 8px 24px rgba(104, 90, 255, 0.15) !important;
   border-color: #685aff33;
+}
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>

@@ -31,9 +31,15 @@ import {
   faTrash,
   faToggleOff,
   faDesktop,
-  faPlus
+  faPlus,
+  faHamburger,
+  faBoxOpen,
+  faWineBottle,
+  faHeadset,
+  faCashRegister,
+  faFileAlt,
 } from '@fortawesome/free-solid-svg-icons'
-import { faPlaystation, faXbox } from '@fortawesome/free-brands-svg-icons'
+import { faPlaystation, faWatchmanMonitoring, faXbox } from '@fortawesome/free-brands-svg-icons'
 
 library.add(
   faUser,
@@ -70,7 +76,13 @@ library.add(
   faPlus,
   faPlaystation,
   faXbox,
-  
+  faHamburger,
+  faBoxOpen,
+  faWineBottle,
+  faHeadset,
+  faWatchmanMonitoring,
+  faCashRegister,
+  faFileAlt,
 )
 
 

@@ -50,19 +50,6 @@
                 <div class="brand-glow position-absolute" :style="{ background: consolaBrand.glow }"></div>
 
                 <!-- Imagen real; si falla carga el SVG de respaldo -->
-                <img
-                  v-if="!imgError"
-                  :src="consolaBrand.img"
-                  :alt="pos.ventaActiva?.nombre"
-                  class="consola-img position-relative"
-                  style="object-fit: contain; height: 140px; filter: drop-shadow(0 0 20px rgba(0,0,0,0.4))"
-                  @error="imgError = true"
-                />
-                <div
-                  v-else
-                  v-html="consolaBrand.svgHtml"
-                  class="consola-svg-wrap position-relative"
-                ></div>
 
                 <div
                   class="position-absolute bottom-0 start-0 end-0 px-3 py-2"
@@ -307,13 +294,24 @@
                 </div>
 
                 <button
-                  class="btn w-100 fw-black text-white rounded-3"
-                  style="background: linear-gradient(135deg, #685aff, #9ccfff)"
-                  @click="pos.cobrar(duracion)"
-                >
-                  <font-awesome-icon icon="cash-register" class="me-2" />
-                  Cobrar
-                </button>
+  class="btn w-100 fw-black text-white rounded-3"
+  :style="{
+  background:
+    'linear-gradient(135deg, #685aff, #9ccfff)',
+  border: 'none'
+}"
+  @click="pos.cobrar({
+    duracionHoras: duracion,
+    juegoSeleccionado
+  })"
+>Cobrar</button>
+<p
+  v-if="pos.carrito.length === 0"
+  class="text-center text-secondary mt-2 mb-0"
+  style="font-size: 0.72rem"
+>
+  Agrega al menos un producto para cobrar
+</p>
               </div>
             </div>
           </div>
@@ -416,30 +414,6 @@ const defaultBrand = {
   </svg>`,
 }
 
-// ─── Catálogo de juegos por tab ────────────────────────────────────
-const catalogoJuegos = [
-  // Acción
-  { id: 1,  tab: 'accion',   emoji: '⚔️',  nombre: 'God of War',        genero: 'Acción / Aventura', descripcion: 'Kratos y Atreus en la mitología nórdica', gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)' },
-  { id: 2,  tab: 'accion',   emoji: '🦇',  nombre: 'Batman Arkham',     genero: 'Acción',             descripcion: 'El Caballero de la Noche en Gotham',      gradient: 'linear-gradient(135deg,#0d0d0d,#2c2c54)' },
-  { id: 3,  tab: 'accion',   emoji: '🕷️',  nombre: 'Spider-Man',        genero: 'Acción / Mundo Abierto', descripcion: 'Columpia por Nueva York como Peter Parker', gradient: 'linear-gradient(135deg,#c0392b,#2980b9)' },
-  { id: 4,  tab: 'accion',   emoji: '🔫',  nombre: 'Uncharted 4',       genero: 'Acción / Aventura', descripcion: 'Nathan Drake en su última cacería',        gradient: 'linear-gradient(135deg,#2d6a4f,#1b4332)' },
-  // Deportes
-  { id: 5,  tab: 'deportes', emoji: '⚽',  nombre: 'FIFA 24',           genero: 'Deportes',          descripcion: 'El fútbol más realista del mundo',         gradient: 'linear-gradient(135deg,#1e3c72,#2a5298)' },
-  { id: 6,  tab: 'deportes', emoji: '🏀',  nombre: 'NBA 2K24',          genero: 'Deportes',          descripcion: 'La NBA en tus manos',                      gradient: 'linear-gradient(135deg,#c46200,#7d3200)' },
-  { id: 7,  tab: 'deportes', emoji: '🥊',  nombre: 'UFC 5',             genero: 'Pelea',             descripcion: 'La jaula más brutal del gaming',           gradient: 'linear-gradient(135deg,#7b0000,#3d0000)' },
-  { id: 8,  tab: 'deportes', emoji: '🏎️',  nombre: 'Gran Turismo 7',    genero: 'Carreras',          descripcion: 'Simulador de conducción definitivo',       gradient: 'linear-gradient(135deg,#232526,#414345)' },
-  // Multijugador
-  { id: 9,  tab: 'multi',    emoji: '🎲',  nombre: 'Fall Guys',         genero: 'Multijugador',      descripcion: 'Caos colorido con amigos',                 gradient: 'linear-gradient(135deg,#f7971e,#ffd200)' },
-  { id: 10, tab: 'multi',    emoji: '🧱',  nombre: 'Minecraft',         genero: 'Sandbox',           descripcion: 'Construye tu mundo sin límites',           gradient: 'linear-gradient(135deg,#5d4037,#388e3c)' },
-  { id: 11, tab: 'multi',    emoji: '🎯',  nombre: 'Call of Duty',      genero: 'FPS',               descripcion: 'El shooter más épico',                     gradient: 'linear-gradient(135deg,#434343,#000000)' },
-  { id: 12, tab: 'multi',    emoji: '🏝️',  nombre: 'Fortnite',          genero: 'Battle Royale',     descripcion: '100 jugadores, 1 ganador',                 gradient: 'linear-gradient(135deg,#4776e6,#8e54e9)' },
-  // RPG
-  { id: 13, tab: 'rpg',      emoji: '🐲',  nombre: 'Elden Ring',        genero: 'RPG / Soulslike',   descripcion: 'El juego de rol más desafiante',           gradient: 'linear-gradient(135deg,#373b44,#4286f4)' },
-  { id: 14, tab: 'rpg',      emoji: '🧙',  nombre: 'Hogwarts Legacy',   genero: 'RPG / Aventura',    descripcion: 'Explora Hogwarts en el siglo XIX',         gradient: 'linear-gradient(135deg,#2c003e,#4a0072)' },
-  { id: 15, tab: 'rpg',      emoji: '🗡️',  nombre: 'The Witcher 3',     genero: 'RPG',               descripcion: 'Geralt en un mundo de monstruos',         gradient: 'linear-gradient(135deg,#1c1c1c,#3d3d3d)' },
-  { id: 16, tab: 'rpg',      emoji: '🌍',  nombre: 'Cyberpunk 2077',    genero: 'RPG / FPS',         descripcion: 'Night City nunca duerme',                  gradient: 'linear-gradient(135deg,#f7ff00,#db36a4)' },
-]
-
 export default {
   name: 'PosModal',
   setup() {
@@ -479,8 +453,8 @@ export default {
       return this.pos.menu.filter((i) => i.categoria === this.categoriaActiva)
     },
     juegosFiltrados() {
-      return catalogoJuegos.filter((j) => j.tab === this.juegoTabActivo)
-    },
+  return this.pos.juegos
+},
   },
   watch: {
     'pos.ventaActiva'() {

@@ -20,10 +20,10 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.isLoading = true
 
-        const { data } = await api.post('/auth/login', {
-          email,
-          password
-        })
+      const { data } = await api.post('auth/login/', {
+      email,
+      password
+      })
 
         this.user = data.user
         this.isAuthenticated = true
@@ -44,7 +44,10 @@ export const useAuthStore = defineStore('auth', {
     async loginWithGoogle(_router) {
       try {
         this.isGoogleLoading = true
-        const { data } = await api.get('/auth/google')
+
+        // Llama al backend para obtener la URL de OAuth de Google
+        const { data } = await api.get('auth/google/')
+        // El backend devuelve la URL de redirección de Google
         if (data.url) {
           window.location.href = data.url
         }

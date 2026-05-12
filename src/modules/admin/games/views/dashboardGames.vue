@@ -17,7 +17,6 @@
       </div>
 
       <div class="d-flex align-items-center gap-2 flex-wrap">
-        <!-- Filtros -->
         <nav class="d-flex gap-2 flex-wrap">
           <button
             v-for="f in filtros"
@@ -35,7 +34,6 @@
           </button>
         </nav>
 
-        <!-- Botón agregar -->
         <button
           class="btn btn-sm fw-bold text-white rounded-3 d-flex align-items-center gap-2"
           style="background-color: #685aff"
@@ -52,28 +50,33 @@
 
       <!-- Grid de juegos -->
       <section class="col-12 col-xl-9">
-        <transition-group
-          tag="div"
-          class="row g-3"
-          name="card-list"
-        >
+
+        <!-- Skeleton loading -->
+        <div v-if="store.isLoading" class="row g-3">
+          <div v-for="n in 6" :key="n" class="col-12 col-sm-6 col-lg-4">
+            <div class="bg-white rounded-4 shadow-sm p-4" style="height: 210px">
+              <div class="skeleton" style="height: 12px; width: 60%; margin-bottom: 12px; border-radius: 6px" />
+              <div class="skeleton" style="height: 10px; width: 40%; margin-bottom: 20px; border-radius: 6px" />
+              <div class="skeleton" style="height: 10px; width: 80%; margin-bottom: 8px; border-radius: 6px" />
+              <div class="skeleton" style="height: 10px; width: 55%; border-radius: 6px" />
+            </div>
+          </div>
+        </div>
+
+        <transition-group v-else tag="div" class="row g-3" name="card-list">
           <div
             v-for="juego in store.juegosFiltrados"
             :key="juego.id"
             class="col-12 col-sm-6 col-lg-4"
           >
             <article class="bg-white rounded-4 shadow-sm overflow-hidden h-100 card-juego">
-              <!-- Barra de color superior -->
               <div
                 style="height: 5px"
                 :style="{ backgroundColor: juego.disponible ? '#22c55e' : '#ef4444' }"
               />
-
               <div class="p-4">
-                <!-- Card header -->
                 <header class="d-flex align-items-start justify-content-between mb-3">
                   <div class="d-flex align-items-center gap-3">
-                    <!-- Ícono consola -->
                     <div
                       class="rounded-3 d-flex align-items-center justify-content-center"
                       :style="{
@@ -93,7 +96,6 @@
                       <p class="text-secondary mb-0" style="font-size: 0.7rem">{{ juego.consola }}</p>
                     </div>
                   </div>
-                  <!-- Badge estado -->
                   <span
                     class="badge rounded-pill small fw-bold text-capitalize"
                     :style="{
@@ -105,18 +107,15 @@
                   </span>
                 </header>
 
-                <!-- Datos -->
                 <section class="d-flex flex-column gap-2 mb-3 small">
                   <div class="d-flex justify-content-between">
                     <span class="text-secondary">Género</span>
-                    <span class="fw-semibold text-dark">{{ juego.genero }}</span>
+                    <span class="fw-semibold text-dark text-capitalize">{{ juego.genero }}</span>
                   </div>
                   <div class="d-flex justify-content-between">
                     <span class="text-secondary">Rentas hoy</span>
                     <span class="fw-semibold text-dark">{{ juego.rentasHoy }}</span>
                   </div>
-
-                  <!-- Barra uso -->
                   <div class="progress mt-1" style="height: 6px">
                     <div
                       class="progress-bar"
@@ -128,10 +127,7 @@
                   </div>
                 </section>
 
-                <!-- Acciones -->
                 <footer class="d-flex gap-2 pt-3 border-top">
-
-                  <!-- Toggle disponibilidad -->
                   <button
                     class="btn btn-sm fw-semibold px-3 rounded-3"
                     :title="juego.disponible ? 'Marcar como ocupado' : 'Marcar como disponible'"
@@ -144,7 +140,6 @@
                     <font-awesome-icon :icon="juego.disponible ? 'toggle-on' : 'toggle-off'" />
                   </button>
 
-                  <!-- Eliminar -->
                   <button
                     class="btn btn-sm fw-semibold px-3 rounded-3"
                     style="background-color: #fff1f1; color: #ef4444"
@@ -160,7 +155,10 @@
         </transition-group>
 
         <!-- Estado vacío -->
-        <div v-if="store.juegosFiltrados.length === 0" class="bg-white rounded-4 shadow-sm p-5 text-center">
+        <div
+          v-if="!store.isLoading && store.juegosFiltrados.length === 0"
+          class="bg-white rounded-4 shadow-sm p-5 text-center"
+        >
           <div
             class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center"
             style="width: 60px; height: 60px; background-color: #f1efff"
@@ -182,10 +180,8 @@
         </div>
       </section>
 
-      <!-- Aside resumen -->
+      <!-- Aside -->
       <aside class="col-12 col-xl-3 d-flex flex-column gap-3">
-
-        <!-- Tarjeta resumen -->
         <article class="bg-white rounded-4 shadow-sm p-4" style="border-top: 4px solid #685aff">
           <header class="mb-3">
             <h3 class="fw-black text-dark fs-6 mb-0">Resumen</h3>
@@ -207,8 +203,6 @@
           </div>
         </article>
 
-
-        <!-- Acceso rápido por consola -->
         <article class="bg-white rounded-4 shadow-sm p-4">
           <header class="mb-3">
             <h3 class="fw-black text-dark fs-6 mb-0">Por consola</h3>
@@ -228,14 +222,18 @@
                 {{ cantidad }}
               </span>
             </div>
+            <p v-if="Object.keys(porConsola).length === 0" class="text-secondary small mb-0">
+              Sin datos
+            </p>
           </div>
         </article>
       </aside>
     </div>
 
-    <!-- Modal de creación -->
-    <modal-games></modal-games>
-    <!-- Confirm delete (alerta inline simple) -->
+    <!-- Modal agregar -->
+    <modal-games />
+
+    <!-- Modal confirmar eliminar -->
     <teleport to="body">
       <transition name="fade">
         <div
@@ -282,8 +280,9 @@
 </template>
 
 <script>
-import { useJuegosStore } from '../store/games';
-import modalGames from '../components/modalGames.vue';
+import { onMounted } from 'vue'
+import { useJuegosStore } from '../store/games'
+import modalGames from '../components/modalGames.vue'
 
 export default {
   name: 'JuegosView',
@@ -292,6 +291,7 @@ export default {
 
   setup() {
     const store = useJuegosStore()
+    onMounted(() => store.fetchJuegos())
     return { store }
   },
 
@@ -352,19 +352,11 @@ export default {
   box-shadow: 0 8px 24px rgba(104, 90, 255, 0.15) !important;
   border-color: #685aff33;
 }
-
-/* Animación de lista */
 .card-list-enter-active,
-.card-list-leave-active {
-  transition: all 0.3s ease;
-}
+.card-list-leave-active { transition: all 0.3s ease; }
 .card-list-enter-from,
-.card-list-leave-to {
-  opacity: 0;
-  transform: translateY(12px);
-}
+.card-list-leave-to { opacity: 0; transform: translateY(12px); }
 
-/* Backdrop confirm modal */
 .modal-backdrop-custom {
   position: fixed;
   inset: 0;
@@ -376,13 +368,16 @@ export default {
   justify-content: center;
   padding: 1rem;
 }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>

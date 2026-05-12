@@ -33,6 +33,16 @@ const router = createRouter({
           name: 'pago-qr',
           component: () => import('../modules/admin/pagos/views/PagoQR.vue'),
           meta: { title: 'Pago QR' },
+        },
+        {
+          path:'productos',
+          name:'productos',
+          component : () => import('../modules/productos/views/productos.vue')
+        },
+        {
+          path: 'sesiones',
+          name: 'sesiones',
+          component: () => import ('../modules/admin/consoles/components/SesionesActivas.vue')
         }
       ],
     },
