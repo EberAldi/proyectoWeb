@@ -20,14 +20,14 @@
     <!-- STATS -->
     <section class="row g-3">
       <div class="col-6 col-lg-3" v-for="stat in stats" :key="stat.label">
-        <article
-          class="bg-white rounded-4 p-4 shadow-sm stat-card h-100"
-          :style="{ borderBottom: '4px solid ' + stat.color }"
-        >
+        <article class="bg-white rounded-4 p-4 shadow-sm stat-card h-100"
+          :style="{ borderBottom: '4px solid ' + stat.color }">
+
           <p class="fw-black text-dark fs-2 mb-0">{{ stat.value }}</p>
           <p class="small text-secondary fw-medium mb-0 mt-1">
             {{ stat.label }}
           </p>
+
         </article>
       </div>
     </section>
@@ -42,9 +42,7 @@
         <article class="bg-white rounded-4 shadow-sm overflow-hidden">
 
           <header class="px-4 py-3 border-bottom">
-            <h2 class="fw-black text-dark fs-6 mb-0">
-              Rentas activas
-            </h2>
+            <h2 class="fw-black text-dark fs-6 mb-0">Rentas activas</h2>
           </header>
 
           <div class="table-responsive">
@@ -100,9 +98,7 @@
         <article class="bg-white rounded-4 shadow-sm overflow-hidden">
 
           <header class="px-4 py-3 border-bottom">
-            <h3 class="fw-black text-dark fs-6 mb-0">
-              Últimas ventas
-            </h3>
+            <h3 class="fw-black text-dark fs-6 mb-0">Últimas ventas</h3>
           </header>
 
           <ul class="list-group list-group-flush small">
@@ -132,45 +128,27 @@
 
             <div v-if="weatherLoading" class="text-center py-2">
               <span class="spinner-border spinner-border-sm me-2" />
-              <span class="small">Obteniendo clima...</span>
+              Cargando clima...
             </div>
 
-            <div v-else-if="weatherError"
-                 class="text-center small py-2" style="opacity:.8">
-              No se pudo obtener el clima
+            <div v-else-if="weatherError" class="text-center small">
+              Error al obtener clima
             </div>
 
             <div v-else-if="weather">
-
-              <div class="d-flex justify-content-between align-items-start mb-2">
-
+              <div class="d-flex justify-content-between">
                 <div>
-                  <p class="small mb-0" style="opacity:.8">
-                    {{ weather.name }}, {{ weather.sys.country }}
-                  </p>
-
+                  <p class="small mb-0">{{ weather.name }}</p>
                   <p class="display-6 fw-black mb-0">
                     {{ Math.round(weather.main.temp) }}°C
                   </p>
-
-                  <p class="small text-capitalize" style="opacity:.85">
+                  <p class="small text-capitalize">
                     {{ weather.weather[0].description }}
                   </p>
                 </div>
 
-                <img
-                  :src="`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`"
-                  width="64"
-                />
-
+                <img :src="`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`" width="64"/>
               </div>
-
-              <div class="d-flex gap-3 small" style="opacity:.85">
-                <span>💧 {{ weather.main.humidity }}%</span>
-                <span>💨 {{ weather.wind.speed }} m/s</span>
-                <span>🌡️ {{ Math.round(weather.main.feels_like) }}°C</span>
-              </div>
-
             </div>
 
           </div>
@@ -191,58 +169,62 @@
             Nueva renta
           </button>
 
+          <!-- 🔥 ESTE ES EL IMPORTANTE -->
           <button class="btn fw-bold"
                   style="background:#9ccfff;color:#685aff"
-                  @click="$router.push('/pos')">
+                  @click="abrirPOS">
             <font-awesome-icon icon="cash-register" class="me-2" />
             Abrir POS
           </button>
 
-          
-
         </nav>
 
       </aside>
-
     </div>
+
+    <!-- 🔥 MODAL POS -->
+    <PosModal v-if="pos.modalAbierto" />
 
   </div>
 </template>
 
 <script>
 import { useDashboardStore } from '../stores/dashboardStore'
+import { usePosStore } from '../../pos/stores/posStoreSimple'
+import PosModal from '../../pos/components/posSimple.vue'
 import { computed } from 'vue'
 
 export default {
   name: 'DashboardView',
 
+  components: { PosModal },
+
   setup() {
     const store = useDashboardStore()
+    const pos = usePosStore()
 
     const stats = computed(() => [
-      {
-        label: 'Consolas activas',
-        value: store.stats.consolasActivas,
-        color: '#685aff',
-      },
-      {
-        label: 'Rentas hoy',
-        value: store.stats.rentasHoy,
-        color: '#22c55e',
-      },
-      {
-        label: 'Clientes hoy',
-        value: store.stats.clientesHoy,
-        color: '#60a5fa',
-      },
-      {
-        label: 'Productos vendidos',
-        value: store.stats.productosVendidos,
-        color: '#ef4444',
-      },
+      { label: 'Consolas activas', value: store.stats.consolasActivas, color: '#685aff' },
+      { label: 'Rentas hoy', value: store.stats.rentasHoy, color: '#22c55e' },
+      { label: 'Clientes hoy', value: store.stats.clientesHoy, color: '#60a5fa' },
+      { label: 'Productos vendidos', value: store.stats.productosVendidos, color: '#ef4444' },
     ])
 
-    return { store, stats }
+    const abrirPOS = () => {
+      // aquí puedes mandar una consola dummy o seleccionar una real
+      pos.abrirVenta({
+        id: 1,
+        nombre: 'Caja Principal',
+        precioPorHora: 50
+      })
+    }
+
+    return {
+      store,
+      pos,
+      stats,
+      abrirPOS
+    }
   },
 
   data() {
